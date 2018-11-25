@@ -24,7 +24,7 @@ import java.util.Objects;
 public class FlinkDatabaseStartupJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(FlinkDatabaseStartupJob.class);
-	private static CouchbaseManager dbUtil = null;
+	private static CouchbaseManager cbManager = null;
 
 	public static void main(String[] args) {
 		try {
@@ -72,15 +72,14 @@ public class FlinkDatabaseStartupJob {
 
 		@Override
 		public void invoke(List<StarterJsonDocument> starterJsonDocuments) throws Exception {
-			dbUtil = new CouchbaseManager();
+			cbManager = new CouchbaseManager();
 			Util.setApplicationProperties(this.args);
 
 			starterJsonDocuments.stream()
 					.forEach(doc -> {
 						final String docId = doc.getId();
 						final JsonObject jsonObject = JsonObject.from(doc.getJsonMap());
-						dbUtil.doTransaction(docId, Constant.BUCKET_DATA, jsonObject
-								, Constant.UPSERT);
+						cbManager.doTransaction(docId, Constant.BUCKET_DATA, jsonObject, Constant.UPSERT);
 					});
 		}
 	}
