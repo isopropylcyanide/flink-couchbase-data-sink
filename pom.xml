@@ -16,6 +16,13 @@
             <version>2.6.2</version>
         </dependency>
 
+        <!--Apache Flink-Java-->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-java</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
