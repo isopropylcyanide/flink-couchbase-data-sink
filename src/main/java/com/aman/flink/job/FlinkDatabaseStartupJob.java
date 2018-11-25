@@ -15,7 +15,6 @@ import org.apache.flink.streaming.api.functions.source.FileProcessingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.Objects;
 public class FlinkDatabaseStartupJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(FlinkDatabaseStartupJob.class);
-	private static CouchbaseManager cbManager = null;
 
 	public static void main(String[] args) {
 		try {
@@ -51,7 +49,7 @@ public class FlinkDatabaseStartupJob {
 							.map(Util::acceptJsonStringAsDocument)
 							.filter(Objects::nonNull);
 
-			jsonDocumentStream.addSink(new FlinkDatabaseStartupJob.CouchbaseSink(env, args)).name("Datalake sink");
+			jsonDocumentStream.addSink(new FlinkDatabaseStartupJob.CouchbaseSink(args)).name("Couchbase sink");
 			env.execute("Database Starter");
 
 		} catch (Exception e) {
@@ -66,20 +64,20 @@ public class FlinkDatabaseStartupJob {
 
 		private String[] args;
 
-		public CouchbaseSink(StreamExecutionEnvironment env, String[] args) {
+		private CouchbaseSink(String[] args) {
 			this.args = args;
 		}
 
 		@Override
-		public void invoke(List<StarterJsonDocument> starterJsonDocuments) throws Exception {
-			cbManager = new CouchbaseManager();
+		public void invoke(List<StarterJsonDocument> starterJsonDocuments, Context context) {
+			CouchbaseManager cbManager = new CouchbaseManager();
 			Util.setApplicationProperties(this.args);
 
-			starterJsonDocuments.stream()
+			starterJsonDocuments
 					.forEach(doc -> {
 						final String docId = doc.getId();
 						final JsonObject jsonObject = JsonObject.from(doc.getJsonMap());
-						cbManager.doTransaction(docId, Constant.BUCKET_DATA, jsonObject, Constant.UPSERT);
+						cbManager.upsertDocument(docId, Constant.BUCKET_DATA, jsonObject);
 					});
 		}
 	}
@@ -89,14 +87,14 @@ public class FlinkDatabaseStartupJob {
 	 */
 	private static class UntilEOFTextInputFormat extends TextInputFormat {
 
-		public UntilEOFTextInputFormat(Path filePath) {
+		private UntilEOFTextInputFormat(Path filePath) {
 			super(filePath);
 			super.setDelimiter("0xff");
 		}
 
 		@Override
-		public String readRecord(String reusable, byte[] bytes, int offset, int numBytes) throws IOException {
-			LOG.debug("Scheduled read [Database starter]: " + Date.from(Instant.now()));
+		public String readRecord(String reusable, byte[] bytes, int offset, int numBytes) {
+			LOG.info("Scheduled read [Database starter]: {0} ", Date.from(Instant.now()));
 			return new String(bytes, offset, numBytes);
 		}
 	}

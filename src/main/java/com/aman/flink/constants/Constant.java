@@ -5,6 +5,9 @@ package com.aman.flink.constants;
  */
 public class Constant {
 
+	private Constant() {
+
+	}
 
 	/**
 	 * Binding resource to the job at runtime
@@ -45,25 +48,5 @@ public class Constant {
 	 * Duration (in ms) after which the file would be polled for changes if polling is enabled
 	 */
 	public static final String STARTUP_DOCUMENTS_POLL_DURATION = "startup.documents.poll.duration";
-
-	/**
-	 * Database Create
-	 */
-	public static final String CREATE = "CREATE";
-
-	/**
-	 * Database Upsert
-	 */
-	public static final String UPSERT = "UPSERT";
-
-	/**
-	 * Database Remove
-	 */
-	public static final String REMOVE = "REMOVE";
-
-	/**
-	 * Database Get
-	 */
-	public static final String GET = "GET";
 
 }
