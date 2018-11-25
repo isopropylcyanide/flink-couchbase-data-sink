@@ -1,10 +1,17 @@
-package com.aman.flink;
+package com.aman.flink.job;
 
+import com.aman.flink.Env;
+import com.aman.flink.constants.Constant;
 import com.aman.flink.model.StarterJsonDocument;
+import com.aman.flink.utility.CouchbaseManager;
 import com.aman.flink.utility.Util;
 import com.couchbase.client.java.document.json.JsonObject;
 import org.apache.flink.api.java.io.TextInputFormat;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.streaming.api.functions.source.FileProcessingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,24 +24,24 @@ import java.util.Objects;
 public class FlinkDatabaseStartupJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(FlinkDatabaseStartupJob.class);
-	private static SynchronousDBUtil dbUtil = null;
+	private static CouchbaseManager dbUtil = null;
 
 	public static void main(String[] args) {
 		try {
-			final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+			final StreamExecutionEnvironment env = Env.instance.getExecutionEnv();
 			Util.setApplicationProperties(args);
 
-			final String jsonStarterPath = Util.getApplicationProperties().get(PruConstants.STARTUP_DOCUMENT_PATH);
+			final String jsonStarterPath = Util.getApplicationProperties().get(Constant.STARTUP_DOCUMENT_PATH);
 			Path path = new Path(jsonStarterPath);
 
 			FileProcessingMode fileProcessingMode = FileProcessingMode.PROCESS_ONCE;
 			long fileReadPollDuration = 0;
 			Boolean isFilePollEnabled =
-					Boolean.valueOf(Util.getApplicationProperties().get(PruConstants.STARTUP_DOCUMENT_POLL_CONTINOUS));
+					Boolean.valueOf(Util.getApplicationProperties().get(Constant.STARTUP_DOCUMENT_POLL_CONTINOUS));
 
 			if (isFilePollEnabled) {
 				fileReadPollDuration =
-						Long.parseLong(Util.getApplicationProperties().get(PruConstants.STARTUP_DOCUMENTS_POLL_DURATION));
+						Long.parseLong(Util.getApplicationProperties().get(Constant.STARTUP_DOCUMENTS_POLL_DURATION));
 				fileProcessingMode = FileProcessingMode.PROCESS_CONTINUOUSLY;
 			}
 
@@ -44,7 +51,7 @@ public class FlinkDatabaseStartupJob {
 							.map(Util::acceptJsonStringAsDocument)
 							.filter(Objects::nonNull);
 
-			jsonDocumentStream.addSink(new DatalakeStartupJob.CouchbaseSink(args)).name("Datalake sink");
+			jsonDocumentStream.addSink(new FlinkDatabaseStartupJob.CouchbaseSink(env, args)).name("Datalake sink");
 			env.execute("Database Starter");
 
 		} catch (Exception e) {
@@ -59,21 +66,21 @@ public class FlinkDatabaseStartupJob {
 
 		private String[] args;
 
-		public CouchbaseSink(String[] args) {
+		public CouchbaseSink(StreamExecutionEnvironment env, String[] args) {
 			this.args = args;
 		}
 
 		@Override
-		public void invoke(List<StarterJsonDocument> value, Context context) {
-			dbUtil = new SynchronousDBUtil();
+		public void invoke(List<StarterJsonDocument> starterJsonDocuments) throws Exception {
+			dbUtil = new CouchbaseManager();
 			Util.setApplicationProperties(this.args);
 
-			value.stream()
+			starterJsonDocuments.stream()
 					.forEach(doc -> {
 						final String docId = doc.getId();
 						final JsonObject jsonObject = JsonObject.from(doc.getJsonMap());
-						dbUtil.doTransaction(docId, PruConstants.BUCKET_CUSTOMER_REGISTRATION, jsonObject
-								, PruConstants.UPSERT);
+						dbUtil.doTransaction(docId, Constant.BUCKET_DATA, jsonObject
+								, Constant.UPSERT);
 					});
 		}
 	}

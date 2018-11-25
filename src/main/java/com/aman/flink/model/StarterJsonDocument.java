@@ -1,9 +1,9 @@
-package com.prudential.prutopia.model;
+package com.aman.flink.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonProperty;
+import com.couchbase.client.deps.com.fasterxml.jackson.databind.JsonNode;
+import com.couchbase.client.deps.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;

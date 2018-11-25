@@ -1,25 +1,47 @@
-package com.prudential.prutopia.utility;
+package com.aman.flink.utility;
 
+import com.aman.flink.constants.Constant;
+import com.aman.flink.exception.DBTransactionException;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-import com.prudential.platform.data.couchbase.CouchbaseClusterMgr;
-import com.prudential.prutopia.exception.DBTransactionException;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-public class SynchronousDBUtil {
+public class CouchbaseManager {
 
-	private static final Logger LOG = LoggerFactory.getLogger(SynchronousDBUtil.class);
+	private static final Logger LOG = LoggerFactory.getLogger(CouchbaseManager.class);
 
 	private Cluster cluster;
 
-	static HashMap<String, Bucket> mapOFBuckets = new HashMap<String, Bucket>();
+	private static HashMap<String, Bucket> mapOFBuckets = new HashMap<>();
+
+	private static Map<String, CouchbaseCluster> clusters = new HashMap<>();
+
+	public static CouchbaseCluster getCluster(String nodes, String user, String pass) {
+		CouchbaseCluster cluster = clusters.get(nodes);
+		if (cluster == null) {
+			synchronized (clusters) {
+				cluster = clusters.get(nodes);
+				if (cluster == null) {
+					LOG.info("Attempting to connect to couchbase cluster [" + nodes + "]");
+					String[] nodeList = nodes.split("\\;");
+					cluster = CouchbaseCluster.create(nodeList);
+					cluster.authenticate(user, pass);
+					LOG.info("Connected to couchbase cluster [" + nodes + "]");
+					clusters.put(nodes, cluster);
+				}
+			}
+		}
+		return cluster;
+	}
 
 	static Bucket getBucket(Cluster cluster, String bucketName) {
 		Bucket bucket = mapOFBuckets.get(bucketName);
@@ -40,9 +62,9 @@ public class SynchronousDBUtil {
 	/**
 	 * Get synchronous db util
 	 */
-	public static SynchronousDBUtil getDBUtil() {
+	public static CouchbaseManager getDBUtil() {
 		try {
-			return SynchronousDBUtil.class.newInstance();
+			return CouchbaseManager.class.newInstance();
 		} catch (InstantiationException | IllegalAccessException e) {
 			LOG.warn(e.getMessage());
 			return null;
@@ -53,16 +75,11 @@ public class SynchronousDBUtil {
 	 * Opens a connection with the correct config properties
 	 */
 	public void openConnection() {
-		/*CouchbaseEnvironment couchbaseEnvironment = DefaultCouchbaseEnvironment.builder()
-				.connectTimeout(10000)
-				.build();*/
 		ParameterTool applicationProperties = Util.getApplicationProperties();
-		String nodeIP = applicationProperties.getRequired(PruConstants.CONFIG_COUCH_NODE_IP);
-		String nodeUser = applicationProperties.getRequired(PruConstants.CONFIG_COUCH_USER_NAME);
-		String nodePassword = applicationProperties.getRequired(PruConstants.CONFIG_COUCH_PASSWORD);
-		//this.cluster = CouchbaseCluster.create(couchbaseEnvironment, nodeIP);
-		//this.cluster.authenticate(nodeUser, nodePassword);
-		this.cluster = CouchbaseClusterMgr.getCluster(nodeIP, nodeUser, nodePassword);
+		String nodeIP = applicationProperties.getRequired(Constant.CONFIG_COUCH_NODE_IP);
+		String nodeUser = applicationProperties.getRequired(Constant.CONFIG_COUCH_USER_NAME);
+		String nodePassword = applicationProperties.getRequired(Constant.CONFIG_COUCH_PASSWORD);
+		this.cluster = CouchbaseManager.getCluster(nodeIP, nodeUser, nodePassword);
 	}
 
 	/**
@@ -74,24 +91,24 @@ public class SynchronousDBUtil {
 
 		Optional<JsonDocument> respJsonDoc = Optional.empty();
 		switch (dbOperation) {
-			case PruConstants.CREATE:
+			case Constant.CREATE:
 				respJsonDoc = insertDocument(docId, bucketName, jsonObject);
 				break;
 
-			case PruConstants.UPSERT:
+			case Constant.UPSERT:
 				respJsonDoc = upsertDocument(docId, bucketName, jsonObject);
 				break;
 
-			case PruConstants.REMOVE:
+			case Constant.REMOVE:
 				respJsonDoc = deleteByDocumentId(docId, bucketName, jsonObject);
 				break;
 
-			case PruConstants.GET:
+			case Constant.GET:
 				respJsonDoc = get(docId, bucketName);
 				break;
 		}
 		/*if (Util.isFalse(closeConnection()))
-			throw new DBTransactionException("Could not disconnect the node : [" + PruConstants.COUCH_NODE + "]");*/
+			throw new DBTransactionException("Could not disconnect the node : [" + Constant.COUCH_NODE + "]");*/
 		return respJsonDoc;
 	}
 

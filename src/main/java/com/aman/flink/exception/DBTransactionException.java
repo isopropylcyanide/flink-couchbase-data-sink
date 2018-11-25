@@ -1,4 +1,4 @@
-package com.prudential.prutopia.exception;
+package com.aman.flink.exception;
 
 public class DBTransactionException extends RuntimeException {
 
