@@ -30,7 +30,7 @@ public class Util {
 				if (null == parameter) {
 					ParameterTool params = ParameterTool.fromArgs(args);
 					try {
-						String filePath = params.get(Constant.PROP_PARAM_NAME);
+						String filePath = params.get(Constant.CONFIG_PROP_PARAM_NAME);
 						parameter = ParameterTool.fromPropertiesFile(filePath);
 					} catch (IOException e) {
 						LOG.warn(e.getMessage());

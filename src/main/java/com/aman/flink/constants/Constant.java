@@ -9,7 +9,7 @@ public class Constant {
 	/**
 	 * Binding resource to the job at runtime
 	 */
-	public static final String PROP_PARAM_NAME = "resource";
+	public static final String CONFIG_PROP_PARAM_NAME = "config";
 
 	/**
 	 * Couchbase user password

@@ -9,7 +9,7 @@ public class Env {
 	private StreamExecutionEnvironment streamingEnv;
 
 	private Env() {
-		initializeStreamingEnvironment();
+		this.initializeStreamingEnvironment();
 	}
 
 	public StreamExecutionEnvironment getExecutionEnv() {
