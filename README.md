@@ -19,6 +19,20 @@
 ---
 
 
+### Config properties ###
+Edit the following properties to match your target instance
+
+Property | Value
+--- | --- 
+couchbase.node | Location of couchbase cluster. By default, localhost
+couchbase.username | Username of couchbase dashboard
+couchbase.password | Password of couchbase dashboard
+startup.documents.path | Path of the json document file. By default, it is present in src/main/resources
+startup.documents.poll.continuous | Flag to enable polling or not. By default set to false
+startup.documents.poll.duration | Duration in ms after which file will be polled for changes if enabled
+
+---
+
 ### Setting up the project ###
 ```
   # Start Couchbase server instance 
