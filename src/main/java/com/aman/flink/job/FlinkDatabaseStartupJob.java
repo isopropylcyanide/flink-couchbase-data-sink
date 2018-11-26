@@ -1,6 +1,7 @@
 package com.aman.flink.job;
 
 import com.aman.flink.Env;
+import com.aman.flink.ResponseSubscriber;
 import com.aman.flink.constants.Constant;
 import com.aman.flink.model.StarterJsonDocument;
 import com.aman.flink.utility.CouchbaseManager;
@@ -77,7 +78,9 @@ public class FlinkDatabaseStartupJob {
 					.forEach(doc -> {
 						final String docId = doc.getId();
 						final JsonObject jsonObject = JsonObject.from(doc.getJsonMap());
-						cbManager.upsertDocument(docId, Constant.BUCKET_DATA, jsonObject);
+						cbManager
+								.upsertDocument(docId, jsonObject)
+								.subscribe(new ResponseSubscriber());
 					});
 		}
 	}

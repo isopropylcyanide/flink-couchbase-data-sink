@@ -1,14 +1,16 @@
 package com.aman.flink.utility;
 
 import com.aman.flink.constants.Constant;
-import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.AsyncBucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +20,7 @@ public class CouchbaseManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CouchbaseManager.class);
 
-	private static final HashMap<String, Bucket> mapOFBuckets = new HashMap<>();
+	private static final HashMap<String, AsyncBucket> mapOFBuckets = new HashMap<>();
 
 	private static final Map<String, CouchbaseCluster> clusters = new HashMap<>();
 
@@ -43,15 +45,15 @@ public class CouchbaseManager {
 	/**
 	 * Gets a bucket with the given name from the cluster
 	 */
-	private static Bucket getBucket(Cluster cluster, String bucketName) {
-		Bucket bucket = mapOFBuckets.get(bucketName);
+	private static AsyncBucket getBucket(Cluster cluster, String bucketName) {
+		AsyncBucket bucket = mapOFBuckets.get(bucketName);
 		if (bucket != null)
 			return bucket;
 		else {
 			synchronized (mapOFBuckets) {
 				bucket = mapOFBuckets.get(bucketName);
 				if (bucket == null) {
-					bucket = Objects.requireNonNull(cluster).openBucket(bucketName);
+					bucket = Objects.requireNonNull(cluster).openBucket(bucketName).async();
 					mapOFBuckets.put(bucketName, bucket);
 				}
 			}
@@ -73,12 +75,12 @@ public class CouchbaseManager {
 	/**
 	 * Upsert document in bucket with the given object
 	 */
-	public void upsertDocument(String docId, String bucketName, JsonObject payload) {
+	public Observable<Document> upsertDocument(String docId, JsonObject payload) {
 		Cluster cluster = this.openConnection();
 		Objects.requireNonNull(cluster);
 		JsonDocument jsonDocument = JsonDocument.create(docId, payload);
-		Bucket bucket = getBucket(cluster, bucketName);
-		bucket.upsert(jsonDocument);
+		AsyncBucket asyncBucket = CouchbaseManager.getBucket(cluster, Constant.BUCKET_DATA);
+		return asyncBucket.upsert(jsonDocument);
 	}
 
 }
