@@ -13,10 +13,10 @@
  */
 package com.github.isopropylcyanide.flinkcouchbasesink.utility;
 
-import com.github.isopropylcyanide.flinkcouchbasesink.Env;
-import com.github.isopropylcyanide.flinkcouchbasesink.constants.Constant;
-import com.github.isopropylcyanide.flinkcouchbasesink.model.StarterJsonDocument;
 import com.couchbase.client.deps.com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.isopropylcyanide.flinkcouchbasesink.Constant;
+import com.github.isopropylcyanide.flinkcouchbasesink.Env;
+import com.github.isopropylcyanide.flinkcouchbasesink.model.StarterJsonDocument;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,47 +27,47 @@ import java.util.List;
 
 public class Util {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Util.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Util.class);
 
-	private static ParameterTool parameter = null;
+    private static ParameterTool parameter = null;
 
-	private Util() {
+    private Util() {
 
-	}
+    }
 
-	/**
-	 * sets application properties to global env properties
-	 */
-	public static synchronized void setApplicationProperties(String... args) {
-		if (null == parameter) {
-			ParameterTool params = ParameterTool.fromArgs(args);
-			try {
-				String filePath = params.get(Constant.CONFIG_PROP_PARAM_NAME);
-				parameter = ParameterTool.fromPropertiesFile(filePath);
-			} catch (IOException e) {
-				LOG.warn(e.getMessage());
-			}
-			Env.instance.getExecutionEnv().getConfig().setGlobalJobParameters(parameter);
-		}
-	}
+    /**
+     * sets application properties to global env properties
+     */
+    public static synchronized void setApplicationProperties(String... args) {
+        if (null == parameter) {
+            ParameterTool params = ParameterTool.fromArgs(args);
+            try {
+                String filePath = params.get(Constant.CONFIG_PROP_PARAM_NAME);
+                parameter = ParameterTool.fromPropertiesFile(filePath);
+            } catch (IOException e) {
+                LOG.warn(e.getMessage());
+            }
+            Env.instance.getExecutionEnv().getConfig().setGlobalJobParameters(parameter);
+        }
+    }
 
-	/**
-	 * gets application properties from global env properties
-	 */
-	public static synchronized ParameterTool getApplicationProperties() {
-		return (ParameterTool) Env.instance.getExecutionEnv().getConfig().getGlobalJobParameters();
-	}
+    /**
+     * gets application properties from global env properties
+     */
+    public static synchronized ParameterTool getApplicationProperties() {
+        return (ParameterTool) Env.instance.getExecutionEnv().getConfig().getGlobalJobParameters();
+    }
 
-	/**
-	 * Try deserializing json doc list string to list of @StarterJsonDocument if possible
-	 */
-	public static List<StarterJsonDocument> acceptJsonStringAsDocument(String jsonDocString) {
-		try {
-			return new ObjectMapper().readValue(jsonDocString,
-					StarterJsonDocument.getStarterJsonDocumentTypeReference());
-		} catch (Exception ex) {
-			LOG.warn(ex.getMessage());
-			return Collections.emptyList();
-		}
-	}
+    /**
+     * Try deserializing json doc list string to list of @StarterJsonDocument if possible
+     */
+    public static List<StarterJsonDocument> acceptJsonStringAsDocument(String jsonDocString) {
+        try {
+            return new ObjectMapper().readValue(jsonDocString,
+                    StarterJsonDocument.getStarterJsonDocumentTypeReference());
+        } catch (Exception ex) {
+            LOG.warn(ex.getMessage());
+            return Collections.emptyList();
+        }
+    }
 }

@@ -26,59 +26,57 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StarterJsonDocument {
 
-	private String id;
+    private String id;
 
-	private JsonNode content;
+    private JsonNode content;
 
-	private Map<String, Object> jsonMap;
+    private Map<String, Object> jsonMap;
 
-	public StarterJsonDocument() {
-	}
+    public StarterJsonDocument() {
+    }
 
-	/**
-	 * Initialize a @Map String, object from the json content
-	 */
-	private void initializeMap() {
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			this.setJsonMap(mapper.convertValue(this.content, Map.class));
-		} catch (Exception e) {
-			this.setJsonMap(new HashMap<>());
-		}
-	}
 
-	public String getId() {
-		return id;
-	}
+    private void initializeMap() {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            this.setJsonMap(mapper.convertValue(this.content, Map.class));
+        } catch (Exception e) {
+            this.setJsonMap(new HashMap<>());
+        }
+    }
 
-	@JsonProperty(value = "id")
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public JsonNode getContent() {
-		return content;
-	}
+    @JsonProperty(value = "id")
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	@JsonProperty(value = "content")
-	public void setContent(JsonNode content) {
-		this.content = content;
-		this.initializeMap();
-	}
+    public JsonNode getContent() {
+        return content;
+    }
 
-	public Map<String, Object> getJsonMap() {
-		return jsonMap;
-	}
+    @JsonProperty(value = "content")
+    public void setContent(JsonNode content) {
+        this.content = content;
+        this.initializeMap();
+    }
 
-	private void setJsonMap(Map<String, Object> jsonMap) {
-		this.jsonMap = jsonMap;
-	}
+    public Map<String, Object> getJsonMap() {
+        return jsonMap;
+    }
 
-	/**
-	 * Get @StarterJsonDocument list type reference for json deserialization
-	 */
-	public static TypeReference<List<StarterJsonDocument>> getStarterJsonDocumentTypeReference() {
-		return new TypeReference<List<StarterJsonDocument>>() {
-		};
-	}
+    private void setJsonMap(Map<String, Object> jsonMap) {
+        this.jsonMap = jsonMap;
+    }
+
+    /**
+     * Get @StarterJsonDocument list type reference for json deserialization
+     */
+    public static TypeReference<List<StarterJsonDocument>> getStarterJsonDocumentTypeReference() {
+        return new TypeReference<List<StarterJsonDocument>>() {
+        };
+    }
 }
