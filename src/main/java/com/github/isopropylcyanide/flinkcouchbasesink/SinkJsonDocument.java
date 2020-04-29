@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and	 * See the License for the specific language governing permissions and
  * limitations under the License.	 * limitations under the License.
  */
-package com.github.isopropylcyanide.flinkcouchbasesink.model;
+package com.github.isopropylcyanide.flinkcouchbasesink;
 
 import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,29 +23,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StarterJsonDocument {
+public class SinkJsonDocument {
 
     private String id;
-
     private JsonNode content;
-
     private Map<String, Object> jsonMap;
 
-    public StarterJsonDocument() {
+    public SinkJsonDocument() {
     }
-
 
     private void initializeMap() {
         ObjectMapper mapper = new ObjectMapper();
         try {
             this.setJsonMap(mapper.convertValue(this.content, Map.class));
+
         } catch (Exception e) {
             this.setJsonMap(new HashMap<>());
         }
     }
 
-    public String getId() {
+    String getId() {
         return id;
     }
 
@@ -64,7 +63,7 @@ public class StarterJsonDocument {
         this.initializeMap();
     }
 
-    public Map<String, Object> getJsonMap() {
+    Map<String, Object> getJsonMap() {
         return jsonMap;
     }
 
@@ -72,11 +71,8 @@ public class StarterJsonDocument {
         this.jsonMap = jsonMap;
     }
 
-    /**
-     * Get @StarterJsonDocument list type reference for json deserialization
-     */
-    public static TypeReference<List<StarterJsonDocument>> getStarterJsonDocumentTypeReference() {
-        return new TypeReference<List<StarterJsonDocument>>() {
+    static TypeReference<List<SinkJsonDocument>> getStarterJsonDocumentTypeReference() {
+        return new TypeReference<List<SinkJsonDocument>>() {
         };
     }
 }

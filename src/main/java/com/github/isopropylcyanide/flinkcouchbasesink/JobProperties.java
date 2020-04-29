@@ -13,9 +13,9 @@
  */
 package com.github.isopropylcyanide.flinkcouchbasesink;
 
-public class Constant {
+public class JobProperties {
 
-    private Constant() {
+    private JobProperties() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
@@ -47,15 +47,15 @@ public class Constant {
     /**
      * The path for the list of documents to be inserted to couchbase
      */
-    public static final String STARTUP_DOCUMENT_PATH = "startup.documents.path";
+    static final String DOCUMENTS_PATH = "startup.documents.path";
 
     /**
      * Flag to denote a polling behaviour vs a one time lookup
      */
-    public static final String STARTUP_DOCUMENT_POLL_CONTINUOUS = "startup.documents.poll.continuous";
+    static final String STARTUP_DOCUMENT_POLL_CONTINUOUS = "startup.documents.poll.continuous";
 
     /**
      * Duration (in ms) after which the file would be polled for changes if polling is enabled
      */
-    public static final String STARTUP_DOCUMENTS_POLL_DURATION = "startup.documents.poll.duration";
+    static final String STARTUP_DOCUMENTS_POLL_DURATION = "startup.documents.poll.duration";
 }

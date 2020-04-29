@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and	 * See the License for the specific language governing permissions and
  * limitations under the License.	 * limitations under the License.
  */
-package com.github.isopropylcyanide.flinkcouchbasesink.utility;
+package com.github.isopropylcyanide.flinkcouchbasesink;
 
 import com.couchbase.client.java.AsyncBucket;
 import com.couchbase.client.java.Cluster;
@@ -19,8 +19,6 @@ import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-import com.github.isopropylcyanide.flinkcouchbasesink.Constant;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
@@ -28,13 +26,12 @@ import rx.Observable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 
 public class CouchbaseManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CouchbaseManager.class);
-
-    private static final HashMap<String, AsyncBucket> mapOFBuckets = new HashMap<>();
-
+    private static final Logger log = LoggerFactory.getLogger(CouchbaseManager.class);
+    private static final HashMap<String, AsyncBucket> bucketsMap = new HashMap<>();
     private static final Map<String, CouchbaseCluster> clusters = new HashMap<>();
 
     private static Cluster getCluster(String nodes, String user, String pass) {
@@ -43,11 +40,11 @@ public class CouchbaseManager {
             synchronized (clusters) {
                 cluster = clusters.get(nodes);
                 if (cluster == null) {
-                    LOG.info("Attempting to connect to couchbase cluster [{0}]", nodes);
+                    log.info("Attempting to connect to couchbase cluster [{}]", nodes);
                     String[] nodeList = nodes.split(";");
                     cluster = CouchbaseCluster.create(nodeList);
                     cluster.authenticate(user, pass);
-                    LOG.info("Connected to couchbase cluster [{0}]", nodes);
+                    log.info("Connected to couchbase cluster [{}]", nodes);
                     clusters.put(nodes, cluster);
                 }
             }
@@ -59,15 +56,15 @@ public class CouchbaseManager {
      * Gets a bucket with the given name from the cluster
      */
     private static AsyncBucket getBucket(Cluster cluster, String bucketName) {
-        AsyncBucket bucket = mapOFBuckets.get(bucketName);
+        AsyncBucket bucket = bucketsMap.get(bucketName);
         if (bucket != null)
             return bucket;
         else {
-            synchronized (mapOFBuckets) {
-                bucket = mapOFBuckets.get(bucketName);
+            synchronized (bucketsMap) {
+                bucket = bucketsMap.get(bucketName);
                 if (bucket == null) {
                     bucket = Objects.requireNonNull(cluster).openBucket(bucketName).async();
-                    mapOFBuckets.put(bucketName, bucket);
+                    bucketsMap.put(bucketName, bucket);
                 }
             }
         }
@@ -77,23 +74,21 @@ public class CouchbaseManager {
     /**
      * Opens a connection with the correct config properties
      */
-    private Cluster openConnection() {
-        ParameterTool applicationProperties = Util.getApplicationProperties();
-        String nodeIP = applicationProperties.getRequired(Constant.CONFIG_COUCH_NODE_IP);
-        String nodeUser = applicationProperties.getRequired(Constant.CONFIG_COUCH_USER_NAME);
-        String nodePassword = applicationProperties.getRequired(Constant.CONFIG_COUCH_PASSWORD);
+    private Cluster openConnection(Properties properties) {
+        String nodeIP = properties.getProperty(JobProperties.CONFIG_COUCH_NODE_IP);
+        String nodeUser = properties.getProperty(JobProperties.CONFIG_COUCH_USER_NAME);
+        String nodePassword = properties.getProperty(JobProperties.CONFIG_COUCH_PASSWORD);
         return CouchbaseManager.getCluster(nodeIP, nodeUser, nodePassword);
     }
 
     /**
      * Upsert document in bucket with the given object
      */
-    public Observable<Document> upsertDocument(String docId, JsonObject payload) {
-        Cluster cluster = this.openConnection();
+    Observable<Document> upsertDocument(String docId, JsonObject payload, Properties properties) {
+        Cluster cluster = this.openConnection(properties);
         Objects.requireNonNull(cluster);
-        JsonDocument jsonDocument = JsonDocument.create(docId, payload);
-        AsyncBucket asyncBucket = CouchbaseManager.getBucket(cluster, Constant.BUCKET_DATA);
-        return asyncBucket.upsert(jsonDocument);
+        JsonDocument couchbaseDocument = JsonDocument.create(docId, payload);
+        AsyncBucket asyncBucket = CouchbaseManager.getBucket(cluster, JobProperties.BUCKET_DATA);
+        return asyncBucket.upsert(couchbaseDocument);
     }
-
 }

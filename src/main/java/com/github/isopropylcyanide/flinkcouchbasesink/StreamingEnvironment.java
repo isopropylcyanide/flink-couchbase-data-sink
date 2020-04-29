@@ -15,33 +15,22 @@ package com.github.isopropylcyanide.flinkcouchbasesink;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-public class Env {
+class StreamingEnvironment {
 
-	public static Env instance = new Env();
+    static StreamingEnvironment instance = new StreamingEnvironment();
 
-	private StreamExecutionEnvironment streamingEnv;
+    private StreamExecutionEnvironment streamingEnv;
 
-	private Env() {
-		this.initializeStreamingEnvironment();
-	}
+    private StreamingEnvironment() {
+        this.initializeStreamingEnvironment();
+    }
 
-	public StreamExecutionEnvironment getExecutionEnv() {
-		return streamingEnv;
-	}
+    StreamExecutionEnvironment getExecutionEnv() {
+        return streamingEnv;
+    }
 
-	/**
-	 * Initialize the streaming env
-	 */
-	private void initializeStreamingEnvironment() {
-		this.streamingEnv = StreamExecutionEnvironment.getExecutionEnvironment();
-		this.streamingEnv.setBufferTimeout(0);
-	}
-
-	/**
-	 * Execute the job with the given jobname through the streaming env
-	 */
-	public void execute(String jobName) throws Exception {
-		this.streamingEnv.execute(jobName);
-	}
-
+    private void initializeStreamingEnvironment() {
+        this.streamingEnv = StreamExecutionEnvironment.getExecutionEnvironment();
+        this.streamingEnv.setBufferTimeout(0);
+    }
 }

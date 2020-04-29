@@ -13,23 +13,21 @@
  */
 package com.github.isopropylcyanide.flinkcouchbasesink;
 
-import com.couchbase.client.java.document.json.JsonObject;
-import com.github.isopropylcyanide.flinkcouchbasesink.model.StarterJsonDocument;
-import com.github.isopropylcyanide.flinkcouchbasesink.utility.CouchbaseManager;
-import com.github.isopropylcyanide.flinkcouchbasesink.utility.Util;
+import com.couchbase.client.deps.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.java.io.TextInputFormat;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.source.FileProcessingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 
 public class FlinkDatabaseStartupJob {
 
@@ -37,61 +35,43 @@ public class FlinkDatabaseStartupJob {
 
     public static void main(String[] args) {
         try {
-            final StreamExecutionEnvironment env = Env.instance.getExecutionEnv();
-            Util.setApplicationProperties(args);
+            StreamExecutionEnvironment environment = StreamingEnvironment.instance.getExecutionEnv();
+            Properties properties = new Properties();
+            properties.load(FlinkDatabaseStartupJob.class.getResourceAsStream("/config.properties"));
 
-            final String jsonStarterPath = Util.getApplicationProperties().get(Constant.STARTUP_DOCUMENT_PATH);
+
+            final String jsonStarterPath = properties.getProperty(JobProperties.DOCUMENTS_PATH);
             Path path = new Path(jsonStarterPath);
 
             FileProcessingMode fileProcessingMode = FileProcessingMode.PROCESS_ONCE;
             long fileReadPollDuration = 0;
-            Boolean isFilePollEnabled =
-                    Boolean.valueOf(Util.getApplicationProperties().get(Constant.STARTUP_DOCUMENT_POLL_CONTINUOUS));
+            Boolean isFilePollEnabled = Boolean.valueOf(properties.getProperty(JobProperties.STARTUP_DOCUMENT_POLL_CONTINUOUS));
 
             if (isFilePollEnabled) {
-                fileReadPollDuration =
-                        Long.parseLong(Util.getApplicationProperties().get(Constant.STARTUP_DOCUMENTS_POLL_DURATION));
+                fileReadPollDuration = Long.parseLong(properties.getProperty(JobProperties.STARTUP_DOCUMENTS_POLL_DURATION));
                 fileProcessingMode = FileProcessingMode.PROCESS_CONTINUOUSLY;
             }
 
-            SingleOutputStreamOperator<List<StarterJsonDocument>> jsonDocumentStream =
-                    env.readFile(new UntilEOFTextInputFormat(path), jsonStarterPath, fileProcessingMode,
-                            fileReadPollDuration)
-                            .map(Util::acceptJsonStringAsDocument)
-                            .filter(Objects::nonNull);
+            SingleOutputStreamOperator<List<SinkJsonDocument>> jsonDocumentStream = environment
+                    .readFile(new UntilEOFTextInputFormat(path), jsonStarterPath, fileProcessingMode, fileReadPollDuration)
+                    .map(FlinkDatabaseStartupJob::acceptJsonStringAsDocument)
+                    .filter(Objects::nonNull);
 
-            jsonDocumentStream.addSink(new FlinkDatabaseStartupJob.CouchbaseSink(args)).name("Couchbase sink");
-            env.execute("Database Starter");
+            jsonDocumentStream.addSink(new CouchbaseJsonDocumentSink(properties)).name("Couchbase Json Document Sink");
+            environment.execute("Flink Couchbase Json Sink Job");
 
         } catch (Exception e) {
             log.error(e.getMessage());
         }
     }
 
-    /**
-     * A custom sink that dumps the incoming records to couchbase
-     */
-    private static class CouchbaseSink implements SinkFunction<List<StarterJsonDocument>> {
+    private static List<SinkJsonDocument> acceptJsonStringAsDocument(String jsonDocString) {
+        try {
+            return new ObjectMapper().readValue(jsonDocString, SinkJsonDocument.getStarterJsonDocumentTypeReference());
 
-        private String[] args;
-
-        private CouchbaseSink(String[] args) {
-            this.args = args;
-        }
-
-        @Override
-        public void invoke(List<StarterJsonDocument> starterJsonDocuments, Context context) {
-            CouchbaseManager cbManager = new CouchbaseManager();
-            Util.setApplicationProperties(this.args);
-
-            starterJsonDocuments
-                    .forEach(doc -> {
-                        final String docId = doc.getId();
-                        final JsonObject jsonObject = JsonObject.from(doc.getJsonMap());
-                        cbManager
-                                .upsertDocument(docId, jsonObject)
-                                .subscribe(new ResponseSubscriber());
-                    });
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return Collections.emptyList();
         }
     }
 
