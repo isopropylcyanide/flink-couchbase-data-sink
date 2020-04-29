@@ -1,27 +1,23 @@
 
-# Flink-couchbase-data-starter
-### A Flink job that reads a Json file (either one-time or continous poll) as its source and dumps it to couchbase as a sink using the asynchronous Couchbase SDK.  ###
+# Flink-couchbase-data-sink
+### A Flink job that reads a Json file (either one-time or continous poll) as its source and dumps the list of json documents to a couchbase sink using the asynchronous Couchbase SDK.  
 ---
 
-* #### A file containing the list of json documents with id is present that needs to be inserted into couchbase ####
-* #### A Flink job takes the file as its source and dumps it to a couchbase sink ####
-* #### Couchbase sink puts the incoming documents to the cluster specified in the config files ####
-* #### [Optional] Flink job has the ability to poll the file for changes at a duration specified in the config ####
+- A file containing the list of json documents with id is present that needs to be inserted into couchbase 
+- A Flink job takes the file as its source and dumps it to a couchbase sink 
+- Couchbase sink puts the incoming documents to the cluster specified in the config files
+- Flink job has the ability to poll the file for changes at a duration specified in the config 
+
+![flink](https://user-images.githubusercontent.com/12872673/49009888-ac6d4c80-f197-11e8-887c-72688aff0ded.png)![image](https://user-images.githubusercontent.com/12872673/80646620-b715ca80-8a8a-11ea-8f8c-b2f74283742b.png)
 
 
-![flink](https://user-images.githubusercontent.com/12872673/49009888-ac6d4c80-f197-11e8-887c-72688aff0ded.png)
-![image](https://user-images.githubusercontent.com/12872673/80646110-c3e5ee80-8a89-11ea-8829-5ed8da8970ff.png)
-
----
-### Prerequisites ###
+### Prerequisites 
 * Java 1.8
 * Zookeeper 3.6.0
 * Apache Flink 1.10.0 [Download](https://flink.apache.org/downloads.html)
 * Couchbase Server 6.5.1
----
 
-
-### Config properties ###
+### Config properties 
 Edit the following properties to match your target instance
 
 Property | Value
@@ -33,9 +29,8 @@ startup.documents.path | Path of the json document file. By default, it is prese
 startup.documents.poll.continuous | Flag to enable polling or not. By default set to false
 startup.documents.poll.duration | Duration in ms after which file will be polled for changes if enabled
 
----
 
-### Setting up the project ###
+### Setting up the project 
 ```
   # Start Zookeeper (required for Flink)
   $ ./zkServer start
@@ -52,7 +47,8 @@ startup.documents.poll.duration | Duration in ms after which file will be polled
   # Submit the job by packaging the jar and supplying its path. The config lies in src/main/resources
   $ flink.sh run -c com.aman.flink.job.FlinkDatabaseStartupJob <jar-location> --config <config-file-location>
   $ ./flink run -c <main-class> <jar> <config-properties>
-  $ ./flink run -c com.github.isopropylcyanide.flinkcouchbasesink.FlinkDatabaseStartupJob \
+
+  e.g ./flink run -c com.github.isopropylcyanide.flinkcouchbasesink.FlinkDatabaseStartupJob \
                       flink-couchbase-data-starter/target/flink-couchbase-sink-1.0.jar \
                       flink-couchbase-data-starter/src/main/resources/config.properties
   
@@ -75,13 +71,13 @@ Note: Replace .sh files with .bat files when working in a Windows environment.
 ![image](https://user-images.githubusercontent.com/12872673/80646304-19ba9680-8a8a-11ea-9f21-99f7a2b87481.png)
  
 ---
-### Flink ###
+### Flink 
 * Open-source platform for distributed stream and batch data processing.
 * Provides data distribution, communication, and fault tolerance for distributed computations over data streams. 
 * Builds batch processing on top of the streaming engine, overlaying native iteration support, managed memory, and program optimization.
 
 ---
-### Couchbase ###
+### Couchbase
 * Open source, distributed, NoSQL document-oriented engagement database. 
 * Exposes a fast key-value store with managed cache for sub-millisecond data operations
 * Specialized to provide low-latency data management for large-scale interactive web, mobile, and IoT applications
