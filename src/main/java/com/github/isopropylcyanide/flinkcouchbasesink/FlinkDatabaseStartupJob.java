@@ -13,7 +13,12 @@
  */
 package com.github.isopropylcyanide.flinkcouchbasesink;
 
+import com.couchbase.client.deps.com.fasterxml.jackson.core.type.TypeReference;
 import com.couchbase.client.deps.com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.isopropylcyanide.flinkcouchbasesink.datasource.SinkJsonDocument;
+import com.github.isopropylcyanide.flinkcouchbasesink.job.CouchbaseDumpSinkFunction;
+import com.github.isopropylcyanide.flinkcouchbasesink.job.JobProperties;
+import com.github.isopropylcyanide.flinkcouchbasesink.job.StreamingEnvironment;
 import org.apache.flink.api.java.io.TextInputFormat;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -22,8 +27,9 @@ import org.apache.flink.streaming.api.functions.source.FileProcessingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -35,13 +41,11 @@ public class FlinkDatabaseStartupJob {
 
     public static void main(String[] args) {
         try {
+            Properties properties = getProperties(args);
+
             StreamExecutionEnvironment environment = StreamingEnvironment.instance.getExecutionEnv();
-            Properties properties = new Properties();
-            properties.load(FlinkDatabaseStartupJob.class.getResourceAsStream("/config.properties"));
-
-
-            final String jsonStarterPath = properties.getProperty(JobProperties.DOCUMENTS_PATH);
-            Path path = new Path(jsonStarterPath);
+            String documentPath = properties.getProperty(JobProperties.DOCUMENTS_PATH);
+            Path path = new Path(documentPath);
 
             FileProcessingMode fileProcessingMode = FileProcessingMode.PROCESS_ONCE;
             long fileReadPollDuration = 0;
@@ -51,27 +55,38 @@ public class FlinkDatabaseStartupJob {
                 fileReadPollDuration = Long.parseLong(properties.getProperty(JobProperties.STARTUP_DOCUMENTS_POLL_DURATION));
                 fileProcessingMode = FileProcessingMode.PROCESS_CONTINUOUSLY;
             }
-
             SingleOutputStreamOperator<List<SinkJsonDocument>> jsonDocumentStream = environment
-                    .readFile(new UntilEOFTextInputFormat(path), jsonStarterPath, fileProcessingMode, fileReadPollDuration)
+                    .readFile(new UntilEOFTextInputFormat(path), documentPath, fileProcessingMode, fileReadPollDuration)
                     .map(FlinkDatabaseStartupJob::acceptJsonStringAsDocument)
                     .filter(Objects::nonNull);
 
-            jsonDocumentStream.addSink(new CouchbaseJsonDocumentSink(properties)).name("Couchbase Json Document Sink");
+            jsonDocumentStream.addSink(new CouchbaseDumpSinkFunction(properties)).name("Couchbase Json Document Sink");
             environment.execute("Flink Couchbase Json Sink Job");
+            log.info("Job execution finished");
 
-        } catch (Exception e) {
-            log.error(e.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            log.error(ex.getMessage());
         }
     }
 
-    private static List<SinkJsonDocument> acceptJsonStringAsDocument(String jsonDocString) {
-        try {
-            return new ObjectMapper().readValue(jsonDocString, SinkJsonDocument.getStarterJsonDocumentTypeReference());
+    private static Properties getProperties(String[] args) throws IOException {
+        Properties properties = new Properties();
+        if (args.length == 0) {
+            properties.load(FlinkDatabaseStartupJob.class.getResourceAsStream("/config.properties"));
+        } else {
+            properties.load(new FileInputStream(args[0]));
+        }
+        return properties;
+    }
 
+    private static List<SinkJsonDocument> acceptJsonStringAsDocument(String jsonDocString) throws IOException {
+        try {
+            return new ObjectMapper().readValue(jsonDocString, new TypeReference<List<SinkJsonDocument>>() {
+            });
         } catch (Exception ex) {
             log.error(ex.getMessage());
-            return Collections.emptyList();
+            throw ex;
         }
     }
 

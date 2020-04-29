@@ -11,16 +11,14 @@
  * See the License for the specific language governing permissions and	 * See the License for the specific language governing permissions and
  * limitations under the License.	 * limitations under the License.
  */
-package com.github.isopropylcyanide.flinkcouchbasesink;
+package com.github.isopropylcyanide.flinkcouchbasesink.datasource;
 
 import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.couchbase.client.deps.com.fasterxml.jackson.annotation.JsonProperty;
-import com.couchbase.client.deps.com.fasterxml.jackson.core.type.TypeReference;
 import com.couchbase.client.deps.com.fasterxml.jackson.databind.JsonNode;
 import com.couchbase.client.deps.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
@@ -44,7 +42,7 @@ public class SinkJsonDocument {
         }
     }
 
-    String getId() {
+    public String getId() {
         return id;
     }
 
@@ -63,16 +61,11 @@ public class SinkJsonDocument {
         this.initializeMap();
     }
 
-    Map<String, Object> getJsonMap() {
+    public Map<String, Object> getJsonMap() {
         return jsonMap;
     }
 
     private void setJsonMap(Map<String, Object> jsonMap) {
         this.jsonMap = jsonMap;
-    }
-
-    static TypeReference<List<SinkJsonDocument>> getStarterJsonDocumentTypeReference() {
-        return new TypeReference<List<SinkJsonDocument>>() {
-        };
     }
 }

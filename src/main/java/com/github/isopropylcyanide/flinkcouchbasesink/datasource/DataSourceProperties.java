@@ -11,26 +11,16 @@
  * See the License for the specific language governing permissions and	 * See the License for the specific language governing permissions and
  * limitations under the License.	 * limitations under the License.
  */
-package com.github.isopropylcyanide.flinkcouchbasesink;
+package com.github.isopropylcyanide.flinkcouchbasesink.datasource;
 
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+class DataSourceProperties {
 
-class StreamingEnvironment {
-
-    static StreamingEnvironment instance = new StreamingEnvironment();
-
-    private StreamExecutionEnvironment streamingEnv;
-
-    private StreamingEnvironment() {
-        this.initializeStreamingEnvironment();
+    private DataSourceProperties() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    StreamExecutionEnvironment getExecutionEnv() {
-        return streamingEnv;
-    }
-
-    private void initializeStreamingEnvironment() {
-        this.streamingEnv = StreamExecutionEnvironment.getExecutionEnvironment();
-        this.streamingEnv.setBufferTimeout(0);
-    }
+    static final String CONFIG_COUCH_PASSWORD = "couchbase.password";
+    static final String CONFIG_COUCH_USER_NAME = "couchbase.username";
+    static final String CONFIG_COUCH_NODE_IP = "couchbase.node";
+    static final String BUCKET_DATA = "data";
 }

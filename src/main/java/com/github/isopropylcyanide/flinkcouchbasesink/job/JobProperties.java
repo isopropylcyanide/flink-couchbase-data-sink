@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and	 * See the License for the specific language governing permissions and
  * limitations under the License.	 * limitations under the License.
  */
-package com.github.isopropylcyanide.flinkcouchbasesink;
+package com.github.isopropylcyanide.flinkcouchbasesink.job;
 
 public class JobProperties {
 
@@ -19,43 +19,7 @@ public class JobProperties {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    /**
-     * Binding resource to the job at runtime
-     */
-    public static final String CONFIG_PROP_PARAM_NAME = "config";
-
-    /**
-     * Couchbase user password
-     */
-    public static final String CONFIG_COUCH_PASSWORD = "couchbase.password";
-
-    /**
-     * Couchbase user name
-     */
-    public static final String CONFIG_COUCH_USER_NAME = "couchbase.username";
-
-    /**
-     * Couchbase cluster location
-     */
-    public static final String CONFIG_COUCH_NODE_IP = "couchbase.node";
-
-    /**
-     * The couchbase bucket to write to
-     */
-    public static final String BUCKET_DATA = "data";
-
-    /**
-     * The path for the list of documents to be inserted to couchbase
-     */
-    static final String DOCUMENTS_PATH = "startup.documents.path";
-
-    /**
-     * Flag to denote a polling behaviour vs a one time lookup
-     */
-    static final String STARTUP_DOCUMENT_POLL_CONTINUOUS = "startup.documents.poll.continuous";
-
-    /**
-     * Duration (in ms) after which the file would be polled for changes if polling is enabled
-     */
-    static final String STARTUP_DOCUMENTS_POLL_DURATION = "startup.documents.poll.duration";
+    public static final String DOCUMENTS_PATH = "startup.documents.path";
+    public static final String STARTUP_DOCUMENT_POLL_CONTINUOUS = "startup.documents.poll.continuous";
+    public static final String STARTUP_DOCUMENTS_POLL_DURATION = "startup.documents.poll.duration";
 }
