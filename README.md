@@ -6,7 +6,7 @@
 * #### A file containing the list of json documents with id is present that needs to be inserted into couchbase ####
 * #### A Flink job takes the file as its source and dumps it to a couchbase sink ####
 * #### Couchbase sink puts the incoming documents to the cluster specified in the config files ####
-* #### [Optional] Flink job has the abiility to poll the file for changes at a duration specified in the config ####
+* #### [Optional] Flink job has the ability to poll the file for changes at a duration specified in the config ####
 
 
 ![flink](https://user-images.githubusercontent.com/12872673/49009888-ac6d4c80-f197-11e8-887c-72688aff0ded.png)
@@ -14,8 +14,9 @@
 ---
 ### Prerequisites ###
 * Java 1.8
-* Apache Flink 1.6.0 [Download](https://flink.apache.org/downloads.html)
-* Couchbase Server
+* Zookeeper 3.6.0
+* Apache Flink 1.10.0 [Download](https://flink.apache.org/downloads.html)
+* Couchbase Server 6.5.1
 ---
 
 
