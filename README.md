@@ -10,6 +10,7 @@
 
 
 ![flink](https://user-images.githubusercontent.com/12872673/49009888-ac6d4c80-f197-11e8-887c-72688aff0ded.png)
+![image](https://user-images.githubusercontent.com/12872673/80646110-c3e5ee80-8a89-11ea-8829-5ed8da8970ff.png)
 
 ---
 ### Prerequisites ###
@@ -36,6 +37,9 @@ startup.documents.poll.duration | Duration in ms after which file will be polled
 
 ### Setting up the project ###
 ```
+  # Start Zookeeper (required for Flink)
+  $ ./zkServer start
+
   # Start Couchbase server instance 
   $ sudo /etc/init.d/couchbase-server start
 
@@ -43,19 +47,32 @@ startup.documents.poll.duration | Duration in ms after which file will be polled
   $ View couchbase dashboard at http://127.0.0.1:8091. Enter your credentials and create a bucket called "data"
   
   # Start Flink cluster in the FLINK_BIN directory
-  $ start-cluster.sh
+  $ ./start-cluster.sh
   
   # Submit the job by packaging the jar and supplying its path. The config lies in src/main/resources
   $ flink.sh run -c com.aman.flink.job.FlinkDatabaseStartupJob <jar-location> --config <config-file-location>
+  $ ./flink run -c <main-class> <jar> <config-properties>
+  $ ./flink run -c com.github.isopropylcyanide.flinkcouchbasesink.FlinkDatabaseStartupJob \
+                      flink-couchbase-data-starter/target/flink-couchbase-sink-1.0.jar \
+                      flink-couchbase-data-starter/src/main/resources/config.properties
   
   # Verify the documents were inserted properly
   $ View the dashboard at http://127.0.0.1:8091 and verify the documents in the bucket "data"
+
+  # Stop the cluster once job is done
+  $ ./stop-cluster.sh
   
 ```
+Note: Replace .sh files with .bat files when working in a Windows environment.
+
+### Output   
+- Flink jobs submitted with `startup.documents.poll.continuous`: true will run continuously. 
+- Flink jobs submitted with `startup.documents.poll.continuous`: false will finish once run
+
+![image](https://user-images.githubusercontent.com/12872673/80646236-fe4f8b80-8a89-11ea-8632-f7d590007f22.png)
  
- Note: Replace .sh files with .bat files when working in a Windows environment.
- 
- ---
+- Verify data in Couchbase
+![image](https://user-images.githubusercontent.com/12872673/80646304-19ba9680-8a8a-11ea-9f21-99f7a2b87481.png)
  
 ---
 ### Flink ###
@@ -68,3 +85,4 @@ startup.documents.poll.duration | Duration in ms after which file will be polled
 * Open source, distributed, NoSQL document-oriented engagement database. 
 * Exposes a fast key-value store with managed cache for sub-millisecond data operations
 * Specialized to provide low-latency data management for large-scale interactive web, mobile, and IoT applications
+
