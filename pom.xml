@@ -37,7 +37,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <!--Application-->
-        <flink.java.version>1.11.2</flink.java.version>
+        <flink.java.version>1.12.0</flink.java.version>
         <flink.streaming.java_2.11.version>1.10.0</flink.streaming.java_2.11.version>
         <flink.clients_2.11.version>1.11.2</flink.clients_2.11.version>
         <couchbase.java.client.version>2.6.2</couchbase.java.client.version>
