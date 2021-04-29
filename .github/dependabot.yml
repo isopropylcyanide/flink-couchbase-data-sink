@@ -1,0 +1,28 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "23:30"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.couchbase.client:java-client
+    versions:
+    - ">= 3.a, < 4"
+  - dependency-name: org.apache.flink:flink-clients_2.11
+    versions:
+    - 1.12.1
+    - 1.12.2
+  - dependency-name: org.apache.flink:flink-streaming-java_2.11
+    versions:
+    - 1.12.1
+    - 1.12.2
+  - dependency-name: org.apache.flink:flink-java
+    versions:
+    - 1.12.1
+    - 1.12.2
+  - dependency-name: com.couchbase.client:java-client
+    versions:
+    - 2.7.18
+    - 2.7.19
